@@ -39,13 +39,13 @@ def create_dw():
     
 
     data = data.merge(qualifying,on=['raceId','driverId','constructorId'],suffixes=(None,'_ql'),how='left')
-    
+    st.write(data)
 
     pits = pit_stops.groupby(['raceId','driverId']).agg({'lap':'count','milliseconds':'sum'}).rename(columns={'lap':'quantidade_pits','milliseconds':'soma_tempo_pits'}).reset_index()
     data = data.merge(pits,on=['raceId','driverId'],how='left')
-    
+    print(data.quantidade_pits.notna().sum())
     data.replace(r'\N',-1,inplace=True)
-
+    
     # PREPARA A DIMENSÃO TEMPO
 
     dim_time = pd.DataFrame()#data[['raceId','driverId']].copy()
@@ -79,6 +79,7 @@ def create_dw():
    
     # TABELA FATOS
     fact_table = data[columns].copy()
+    
     fact_table = fact_table.join(dim_time['id_tempo'],rsuffix='time')
     fact_table['id_tempo'] = fact_table.id_tempo.fillna(method='ffill').astype('int')
     
@@ -91,7 +92,7 @@ def create_dw():
 
     fact_table.rename(columns={'driverId':'id_piloto','circuitId':'id_circuito','constructorId':'id_construtor',
     'position_ql':'posicao_qualify','positionOrder':'posicao_corrida','points':'pontos','laps':'numero_voltas'},inplace=True)
-    
+    print(fact_table.quantidade_pits.notna().sum())
     fact_table.to_csv('FATO_corrida.csv',index=False)
     dim_circuito.to_csv('DIM_circuito.csv',index=False)
     dim_piloto.to_csv('DIM_piloto.csv',index=False)
@@ -202,6 +203,6 @@ def main():
 
         
 if __name__ == '__main__':
-        create_dw()
+    create_dw()
     #main()
            
